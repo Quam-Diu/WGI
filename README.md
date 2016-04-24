@@ -5,7 +5,7 @@ I used a dataset from the world bank called "World Governance Indicators", which
 
 The slidify presentation is located here: http://quam-diu.github.io/WGI/#/slide-1
 
-And the shinyapp is here: http://quam-diu.github.io/WGI/#/slide-1
+And the shinyapp is here: https://kobane.shinyapps.io/WGIapp/
 
 All documentation about the dataset could be found here: 
 http://data.worldbank.org/data-catalog/worldwide-governance-indicators
