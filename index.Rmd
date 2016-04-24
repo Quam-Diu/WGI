@@ -1,0 +1,145 @@
+---
+title       : World Governance Index
+subtitle    : 
+author      : Gustavo Lobo Aguilar
+job         : 
+framework   : revealjs      # {io2012, html5slides, shower, dzslides, ...}
+highlighter : highlight.js  # {highlight.js, prettify, highlight}
+hitheme     : tomorrow      # 
+widgets     : []            # {mathjax, quiz, bootstrap}
+mode        : selfcontained # {standalone, draft}
+knit        : slidify::knit2slides
+---
+
+<style>
+    .reveal code {
+        font-size: 0.6em;
+    }
+    
+    /* slide titles */
+    .reveal h3 { 
+        color: blue;
+    }
+    
+.reveal p, .reveal ul, .reveal ol {
+	font-size: 28px;
+}
+
+.reveal img {
+	margin: 30px 0 0 0;
+	border: 4px solid #eee;
+    width: 80%;
+    height: 400px;
+}
+
+</style>
+
+## World Governance Index
+### Gustavo Lobo Aguilar, 2016
+
+---
+
+## Definition of Governance
+
+The traditions and institutions by which authority in a country is exercised. This includes a) the process by which governments are selected, monitored and replaced; b) the capacity of the government to effectively formulate and implement sound policies; and c) the respect of citizens and the state for the institutions that govern economic and social interactions among them.
+
+---
+
+## Statistical Metodology: Unobserved Components Model
+
+1. Step 1: Standarize data from diverse sources into comparable units.All the individual variables have been rescaled to run from zero to one, with higher values indicating better outcomes.
+
+2. Step 2: Construct an aggregate indicator of governance as a weighted average of the underlying source variables. The units of aggregate governance indicators have zero mean, unit standard deviation, and ranging approximately from -2.5 to 2.5.
+
+3. Step 3: Construct margins of error that reflect the unavoidable imprecision in measuring governance.
+
+---
+
+## About the dataset
+
+- Six composite indicators of broad dimensions of governance covering over 200 countries since 1996.
+- Based on several hundred variables obtained from 31 different data sources (www.govindicators.org).
+- Draw together data on perceptions of governance.
+- 21 variables, 1-5 factors to identify the indicator type and the country, 6-21 data from years 1996 to 2014.
+
+```{r getdata, echo=FALSE}
+
+    library(dplyr)
+    library(tidyr)
+    library(ggplot2)
+
+# 2. Adquiring data and initial processing
+    
+    # 2.1 Download and unzip the data file
+        temp <- tempfile()
+        download.file("http://databank.worldbank.org/data/download/WGI_csv.zip", temp)
+        con <- unz(temp, "WGI_Data.csv")
+    
+    #2.2 Data tyding 
+        dat <- readLines(con, warn=F)
+        dat <- gsub("Bahamas, The","Bahamas", dat)
+        dat <- gsub("Congo, Dem. Rep.","Zaire", dat)
+        dat <- gsub("Congo, Rep.","Congo", dat)
+        dat <- gsub("Egypt, Arab Rep.","Egypt", dat)
+        dat <- gsub("Gambia, The","Gambia", dat)
+        dat <- gsub("Hong Kong SAR, China","Hong Kong", dat)
+        dat <- gsub("Iran, Islamic Rep.","Iran", dat)
+        dat <- gsub("Korea, Dem. Rep.","North Korea", dat)
+        dat <- gsub("Korea, Rep.","South Korea", dat)
+        dat <- gsub("Macao SAR, China","Macao", dat)
+        dat <- gsub("Macedonia, FYR","Macedonia", dat)
+        dat <- gsub("Micronesia, Fed. Sts.","Micronesia", dat)
+        dat <- gsub("Taiwan, China","Taiwan", dat)
+        dat <- gsub("Venezuela, RB","Venezuela", dat)
+        dat <- gsub("Yemen, Rep.","Yemen", dat)
+    
+    #2.3 Load data as dataframe
+        #2.3.1 Initial loading
+        wgi.df <- read.csv(textConnection(paste0(dat, collapse="\n")), header =T, sep = ",", dec=".")
+        #2.3.2 Separates the column "Indicator.Name" in two
+        wgi.df <- separate(wgi.df, Indicator.Name, c("Indicator.Type", "Indicator.Name"), ":")
+        #2.3.3 Aditional formating to column names
+        names(wgi.df) <- gsub("X", "Y", colnames(wgi.df))
+        names(wgi.df) <- gsub("Indicator.Name.", "", colnames(wgi.df))
+
+```
+
+```{r dataset, echo=TRUE}
+    str(wgi.df)
+```
+
+---
+
+## Example of a plot
+
+This is an example plot based on the dataset. It compares the "Control of Corruption" dimension of governance. Users will be able to select other 5 indicators, years from 1996 to 2014, any of the countries included in the origianal dataset, and also plot a trend of a given year range, country (among the previously compared) and indicator type. 
+
+```{r comPlot, echo=FALSE}
+ 
+
+        filtered <- wgi.df %>% filter(
+                                        Country.Name %in% c("Panama", "Costa Rica", 
+                                                            "Nicaragua", "El Salvador", 
+                                                            "Honduras", "Guatemala", 
+                                                            "Mexico"),
+                                        Indicator.Type == "Control of Corruption",
+                                        Indicator.Name == " Estimate"
+                                    ) 
+
+        ggplot(aes_string(x="Country.Name", 
+                          y="Y2014", 
+                          fill="Country.Name", 
+                          label="Y2014"), 
+                        data = filtered) + 
+                        geom_bar(stat = 'identity', position = 'dodge', colour="black") +
+                        geom_text(aes_string(label="round(Y2014,2)", hjust=0.5, vjust=1)) +
+                        xlab("Country") + 
+                        ylab("Value") +
+                        ggtitle("2014") + 
+                        coord_cartesian(ylim=c(-1.5,1.5)) + 
+                        geom_hline(yintercept = 0) +
+                        scale_fill_discrete(name="Country") +
+                        theme(plot.title = element_text(size=22, colour ="#458B74", vjust =1.5)
+                    )
+
+```
